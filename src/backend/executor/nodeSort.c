@@ -94,25 +94,60 @@ ExecSort(SortState *node)
 			tuplesort_set_bound(tuplesortstate, node->bound);
 		node->tuplesortstate = (void *) tuplesortstate;
 
+
+		// Lijie: add begin 
+		// =================== Model initialization =========================
+		// We may put init_model() to ExecInitSort
+		Model svm;
+		Model* svm_model = init_model(&svm);
+		printf("[SVM] Initialize SVM model (loss = 0, p1 = 0, p2 = 0)\n");
+		// =================== Model initialization =========================
+		// Lijie: add end
+
 		/*
 		 * Scan the subplan and feed all the tuples to tuplesort.
 		 */
 
+		// Lijie: add begin
+		int batch_size = 100;
+		int ith_tuple = 0;
+		printf("[SVM] Batch size = 100\n");
+
 		for (;;)
 		{
+			// Lijie: read a tuple from the previous node (e.g., SeqScan)
 			slot = ExecProcNode(outerNode);
-
+			
+			// Lijie: we finalize the model when finishing reading all the tuples
 			if (TupIsNull(slot))
+				printf("[SVM] Finalize the model.\n");
+				// True means the last tuple, so that we need to force shuffling the buffered tuples
+				bool last_tuple = true;
+				bool is_buffer_empty = my_tuplesort_puttupleslot(tuplesortstate, slot, last_tuple);
+				
+				// finalize_model(tuplesortstate, svm_model);
+				ith_tuple = perform_SGD(tuplesortstate, svm_model, ith_tuple, batch_size, last_tuple);
+				clear_buffer(tuplesortstate);
+				// Lijie: add end
 				break;
 
-			tuplesort_puttupleslot(tuplesortstate, slot);
+			bool last_tuple = false;
+			// Lijie: put a tuple into the buffer and perform shuffling when the buffer is full
+			bool buffer_full_and_shuffled = my_tuplesort_puttupleslot(tuplesortstate, slot, last_tuple);
+			if (buffer_full_and_shuffled) {
+				// perform SGD on the buffered tuples, update the model
+				ith_tuple = perform_SGD(tuplesortstate, svm_model, ith_tuple, batch_size, last_tuple);
+				// and then clear the buffer for further reading
+				clear_buffer(tuplesortstate);
+			}
+			 	
 		}
 
 		/*
 		 * Complete the sort.
 		 */
-		tuplesort_performsort(tuplesortstate);
-
+		// tuplesort_performsort(tuplesortstate);
+		
 		/*
 		 * restore to user specified direction
 		 */
@@ -140,6 +175,32 @@ ExecSort(SortState *node)
 								  slot);
 	return slot;
 }
+// Lijie: add begin
+Model* init_model(Model* model) {
+	model->loss = 0;
+	model->p1 = 0;
+	model->p2 = 0;
+	return model;
+}
+
+int perform_SGD(Tuplesortstate* tuplesortstate, Model* model, int ith_tuple, 
+				int batch_size, bool last_tuple) {
+
+	int ith_tuple = compute_loss_and_update_model(tuplesortstate, model, ith_tuple, 
+					batch_size, last_tuple);
+
+	return ith_tuple;
+}
+
+void clear_buffer(Tuplesortstate* tuplesortstate)
+{
+	// We may do some other clearing jobs
+	// e.g., need to delete state->memtuples to avoid memory leak
+	clear_tuplesort_state(tuplesortstate);
+
+}
+
+// Lijie: add end
 
 /* ----------------------------------------------------------------
  *		ExecInitSort

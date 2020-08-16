@@ -31,6 +31,13 @@
  */
 typedef struct Tuplesortstate Tuplesortstate;
 
+// Lijie: add begin
+typedef struct {
+	int loss;
+	int p1;
+	int p2;
+} Model;
+// Lijie: add end
 /*
  * We provide multiple interfaces to what is essentially the same code,
  * since different callers have different data to be sorted and want to
@@ -87,6 +94,17 @@ extern void tuplesort_putdatum(Tuplesortstate *state, Datum val,
 				   bool isNull);
 
 extern void tuplesort_performsort(Tuplesortstate *state);
+
+// lijie: begin
+extern void tuplesort_performshuffle(Tuplesortstate *state);
+
+extern int compute_loss_and_update_model(Tuplesortstate* state, Model* model, 
+			int ith_tuple, int batch_size, bool last_tuple);
+
+extern void clear_tuplesort_state(Tuplesortstate* tuplesortstate);
+
+extern bool my_tuplesort_puttupleslot(Tuplesortstate *state, TupleTableSlot *slot, bool last_tuple);
+// lijie: end
 
 extern bool tuplesort_gettupleslot(Tuplesortstate *state, bool forward,
 					   TupleTableSlot *slot);
