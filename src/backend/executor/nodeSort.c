@@ -135,9 +135,9 @@ ExecSort(SortState *node)
 		 */
 
 		// Lijie: add begin
-		int batch_size = 100;
+		int batch_size = 5;
 		int ith_tuple = 0;
-		elog(LOG, "[SVM] Batch size = 100");
+		elog(LOG, "[SVM] Batch size = 5");
 
 		for (;;)
 		{

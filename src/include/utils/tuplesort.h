@@ -33,7 +33,7 @@ typedef struct Tuplesortstate Tuplesortstate;
 
 // Lijie: add begin
 typedef struct {
-	int loss;
+	double loss;
 	int p1;
 	int p2;
 } Model;

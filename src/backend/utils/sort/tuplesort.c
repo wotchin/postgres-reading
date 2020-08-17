@@ -526,8 +526,8 @@ shuffle_tuple(SortTuple *a, size_t n, Tuplesortstate *state)
 double
 compute_loss(SortTuple* p, Model* model)
 {
-	p->tuple;
-	return 1.0;
+	double loss = (double) p->datum1;
+	return loss;
 }
 
 void 
@@ -542,29 +542,32 @@ compute_loss_and_update_model(Tuplesortstate* state, Model* model,
 {
 	int n = state->memtupcount;
 	SortTuple* tuples = state->memtuples;
+	int last_updated = 0;
+	int i = 0;
 
 	for (SortTuple* p = tuples; p < tuples + n; p++) {
 		double tuple_loss = compute_loss(p, model);
-		model->loss += tuple_loss;
-		elog(LOG, "[SVM][%d tuple] >>> Add %.2f loss to model.", ith_tuple, tuple_loss);
+		model->loss = model->loss + tuple_loss;
+		elog(LOG, "[SVM][Tuple %d] >>> Add %.2f loss to model.", ith_tuple, tuple_loss);
 		ith_tuple = (ith_tuple + 1) % batch_size;
 		
 		// going to update model
 		if (ith_tuple == 0) {
-
-			elog(LOG, "[SVM] >>> Update model (p1 = %d, p2 = %d).", model->p1, model->p2);
 			// update model
 			model->p1 += 1;
 			model->p2 += 1;
+			elog(LOG, "[SVM] >>> Update model (p1 = %d, p2 = %d, loss = %.2f).", model->p1, model->p2, model->loss);
+			last_updated = i;
 		}
+		++i;
 
 	}
 
 	if (last_tuple) {
-		if (n > 0) {
+		if (n > 0 && last_updated < n - 1) {
 			model->p1 += 1;
 			model->p2 += 1;
-			elog(LOG, "[SVM] >>> Last: Update model (p1 = %d, p2 = %d).", model->p1, model->p2);
+			elog(LOG, "[SVM] >>> Last: Update model (p1 = %d, p2 = %d, loss = %.2f).", model->p1, model->p2, model->loss);
 		}
 		else {
 			elog(LOG, "[SVM] >>> Has updated the model.");
