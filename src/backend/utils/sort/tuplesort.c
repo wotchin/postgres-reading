@@ -546,13 +546,13 @@ compute_loss_and_update_model(Tuplesortstate* state, Model* model,
 	for (SortTuple* p = tuples; p < tuples + n; p++) {
 		double tuple_loss = compute_loss(p, model);
 		model->loss += tuple_loss;
-		printf("[SVM][%d tuple] >>> Add %.2f loss to model.\n", ith_tuple, tuple_loss);
+		elog(LOG, "[SVM][%d tuple] >>> Add %.2f loss to model.", ith_tuple, tuple_loss);
 		ith_tuple = (ith_tuple + 1) % batch_size;
 		
 		// going to update model
 		if (ith_tuple == 0) {
 
-			printf("[SVM] >>> Update model.\n");
+			elog(LOG, "[SVM] >>> Update model (p1 = %d, p2 = %d).", model->p1, model->p2);
 			// update model
 			model->p1 += 1;
 			model->p2 += 1;
@@ -564,10 +564,10 @@ compute_loss_and_update_model(Tuplesortstate* state, Model* model,
 		if (n > 0) {
 			model->p1 += 1;
 			model->p2 += 1;
-			printf("[SVM] >>> Last: Update model.\n");
+			elog(LOG, "[SVM] >>> Last: Update model (p1 = %d, p2 = %d).", model->p1, model->p2);
 		}
 		else {
-			printf("[SVM] >>> Has updated the model.\n");
+			elog(LOG, "[SVM] >>> Has updated the model.");
 		}
 	}
 
@@ -1467,7 +1467,7 @@ tuplesort_performsort(Tuplesortstate *state)
 			break;
 
 		default:
-			elog(ERROR, "invalid tuplesort state");
+			elog(ERROR, "");
 			break;
 	}
 

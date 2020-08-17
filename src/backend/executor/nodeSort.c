@@ -126,7 +126,7 @@ ExecSort(SortState *node)
 		Model svm;
 		Model* svm_model = &svm;
 		init_model(svm_model);
-		printf("[SVM] Initialize SVM model (loss = 0, p1 = 0, p2 = 0)\n");
+		elog(LOG, "[SVM] Initialize SVM model (loss = 0, p1 = 0, p2 = 0)");
 		// =================== Model initialization =========================
 		// Lijie: add end
 
@@ -137,7 +137,7 @@ ExecSort(SortState *node)
 		// Lijie: add begin
 		int batch_size = 100;
 		int ith_tuple = 0;
-		printf("[SVM] Batch size = 100\n");
+		elog(LOG, "[SVM] Batch size = 100");
 
 		for (;;)
 		{
@@ -146,8 +146,8 @@ ExecSort(SortState *node)
 			bool last_tuple = false;
 
 			// Lijie: we finalize the model when finishing reading all the tuples
-			if (TupIsNull(slot))
-				printf("[SVM] Finalize the model.\n");
+			if (TupIsNull(slot)) {
+				elog(LOG, "[SVM] Finalize the model.");
 				// True means the last tuple, so that we need to force shuffling the buffered tuples
 				last_tuple = true;
 				bool is_buffer_empty = my_tuplesort_puttupleslot(tuplesortstate, slot, last_tuple);
@@ -157,6 +157,7 @@ ExecSort(SortState *node)
 				clear_buffer(tuplesortstate);
 				// Lijie: add end
 				break;
+			}
 
 			
 			// Lijie: put a tuple into the buffer and perform shuffling when the buffer is full
