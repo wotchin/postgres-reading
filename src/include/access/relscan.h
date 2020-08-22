@@ -38,6 +38,9 @@ typedef struct HeapScanDescData
 	BufferAccessStrategy rs_strategy;	/* access strategy for reads */
 	bool		rs_syncscan;	/* report location to syncscan logic? */
 
+	BlockNumber* rs_shuffled_block_ids; // only used for ShuffleScan operator
+	BlockNumber rs_current_index; // only used for ShuffleScan operator
+
 	/* scan current state */
 	bool		rs_inited;		/* false = scan not init'd yet */
 	HeapTupleData rs_ctup;		/* current tuple in scan, if any */

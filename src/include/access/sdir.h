@@ -23,7 +23,10 @@ typedef enum ScanDirection
 {
 	BackwardScanDirection = -1,
 	NoMovementScanDirection = 0,
-	ForwardScanDirection = 1
+	ForwardScanDirection = 1,
+	// Lijie: add begin
+	ShuffleScanDirection = 2
+	// Lijie: add end
 } ScanDirection;
 
 /*
@@ -32,7 +35,7 @@ typedef enum ScanDirection
  */
 #define ScanDirectionIsValid(direction) \
 	((bool) (BackwardScanDirection <= (direction) && \
-			 (direction) <= ForwardScanDirection))
+			 (direction) <= ShuffleScanDirection))
 
 /*
  * ScanDirectionIsBackward
@@ -54,5 +57,9 @@ typedef enum ScanDirection
  */
 #define ScanDirectionIsForward(direction) \
 	((bool) ((direction) == ForwardScanDirection))
+
+
+#define ScanDirectionIsShuffle(direction) \
+	((bool) ((direction) == ShuffleScanDirection))
 
 #endif   /* SDIR_H */

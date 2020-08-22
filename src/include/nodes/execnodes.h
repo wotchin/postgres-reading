@@ -1202,6 +1202,8 @@ typedef struct ScanState
  */
 typedef ScanState SeqScanState;
 
+typedef ScanState ShuffleScanState;
+
 /*
  * These structs store information about index quals that don't have simple
  * constant right-hand sides.  See comments for ExecIndexBuildScanKeys()

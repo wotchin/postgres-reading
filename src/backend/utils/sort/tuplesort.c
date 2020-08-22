@@ -511,7 +511,7 @@ static void shuffle_tuple(SortTuple *a, size_t n, Tuplesortstate *state);
 static void
 shuffle_tuple(SortTuple *a, size_t n, Tuplesortstate *state)
 {
-	srand(time(0));
+	srand(time(0) + rand());
 
 	CHECK_FOR_INTERRUPTS();
 	for (int i = n - 1; i > 0; i--) {

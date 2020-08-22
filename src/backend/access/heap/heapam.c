@@ -604,6 +604,7 @@ heapgettup_pagemode(HeapScanDesc scan,
 {
 	HeapTuple	tuple = &(scan->rs_ctup);
 	bool		backward = ScanDirectionIsBackward(dir);
+	bool		shuffle_order = ScanDirectionIsShuffle(dir);
 	BlockNumber page;
 	bool		finished;
 	Page		dp;
@@ -629,6 +630,7 @@ heapgettup_pagemode(HeapScanDesc scan,
 				tuple->t_data = NULL;
 				return;
 			}
+			
 			page = scan->rs_startblock; /* first page */
 			heapgetpage(scan, page);
 			lineindex = 0;
@@ -697,6 +699,65 @@ heapgettup_pagemode(HeapScanDesc scan,
 
 		linesleft = lineindex + 1;
 	}
+
+	// Lijie: add begin
+	else if (ScanDirectionIsShuffle(dir))
+	{
+		
+		if (!scan->rs_inited)
+		{
+			/*
+			 * return null immediately if relation is empty
+			 */
+			if (scan->rs_nblocks == 0)
+			{
+				Assert(!BufferIsValid(scan->rs_cbuf));
+				tuple->t_data = NULL;
+				return;
+			}
+
+			// Lijie: add begin
+			// Shuffle the page ids before reading any page
+			BlockNumber n = scan->rs_nblocks;
+			scan->rs_shuffled_block_ids = (BlockNumber *) palloc(sizeof(BlockNumber) * n);
+			//
+			for (BlockNumber i = 0; i < n; i++) 
+				scan->rs_shuffled_block_ids[i] = i;
+			
+			srand(time(0) + rand());
+
+			for (BlockNumber i = n - 1; i > 0; i--) {
+				BlockNumber r = rand() % (i + 1);
+				// swap(a + i, a + r);
+				BlockNumber t = scan->rs_shuffled_block_ids[i];
+				scan->rs_shuffled_block_ids[i] = scan->rs_shuffled_block_ids[r];
+				scan->rs_shuffled_block_ids[r] = t;
+			}
+
+			BlockNumber index = scan->rs_current_index;
+			scan->rs_startblock = scan->rs_shuffled_block_ids[index];
+			// Lijie: add end
+			
+			page = scan->rs_startblock; /* first page */
+			heapgetpage(scan, page);
+			lineindex = 0;
+			scan->rs_inited = true;
+		}
+		else
+		{
+			/* continue from previously returned page/tuple */
+			page = scan->rs_cblock;		/* current page */
+			lineindex = scan->rs_cindex + 1;
+		}
+
+		dp = (Page) BufferGetPage(scan->rs_cbuf);
+		lines = scan->rs_ntuples;
+		/* page and lineindex now reference the next visible tid */
+
+		linesleft = lines - lineindex;
+	}
+	// Lijie: add end
+
 	else
 	{
 		/*
@@ -786,6 +847,18 @@ heapgettup_pagemode(HeapScanDesc scan,
 			if (page == 0)
 				page = scan->rs_nblocks;
 			page--;
+		}
+		else if (shuffle_order) {
+			scan->rs_current_index = scan->rs_current_index + 1;
+
+			if (scan->rs_current_index >= scan->rs_nblocks) {
+				finished = true;
+				page = 0;
+			}
+			else {
+				page = scan->rs_shuffled_block_ids[scan->rs_current_index];
+				finished = false;
+			}
 		}
 		else
 		{
@@ -1224,6 +1297,11 @@ heap_beginscan_internal(Relation relation, Snapshot snapshot,
 	scan->rs_allow_strat = allow_strat;
 	scan->rs_allow_sync = allow_sync;
 
+	// Lijie: add begin
+	scan->rs_shuffled_block_ids = NULL;
+	scan->rs_current_index = 0;
+	// Lijie: add end
+
 	/*
 	 * we can use page-at-a-time mode if it's an MVCC-safe snapshot
 	 */
@@ -1308,6 +1386,12 @@ heap_endscan(HeapScanDesc scan)
 
 	if (scan->rs_strategy != NULL)
 		FreeAccessStrategy(scan->rs_strategy);
+
+
+	// Lijie: add begin
+	if (scan->rs_shuffled_block_ids != NULL)
+		pfree(scan->rs_shuffled_block_ids);
+	// Lijie: add end
 
 	pfree(scan);
 }

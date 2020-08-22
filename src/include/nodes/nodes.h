@@ -51,6 +51,9 @@ typedef enum NodeTag
 	T_BitmapOr,
 	T_Scan,
 	T_SeqScan,
+	// Lijie: add begin
+	T_ShuffleScan,
+	// Lijie: add end
 	T_IndexScan,
 	T_IndexOnlyScan,
 	T_BitmapIndexScan,
@@ -68,6 +71,9 @@ typedef enum NodeTag
 	T_HashJoin,
 	T_Material,
 	T_Sort,
+	// Lijie: add begin
+	T_ShuffleSort,
+	// Lijie: add end
 	T_Group,
 	T_Agg,
 	T_WindowAgg,
@@ -96,6 +102,9 @@ typedef enum NodeTag
 	T_BitmapOrState,
 	T_ScanState,
 	T_SeqScanState,
+	// Lijie add
+	T_ShuffleScanState,
+	// Lijie add
 	T_IndexScanState,
 	T_IndexOnlyScanState,
 	T_BitmapIndexScanState,
@@ -113,6 +122,9 @@ typedef enum NodeTag
 	T_HashJoinState,
 	T_MaterialState,
 	T_SortState,
+	// Lijie: add begin
+	T_ShuffleSortState,
+	// Lijie: add end
 	T_GroupState,
 	T_AggState,
 	T_WindowAggState,

@@ -270,6 +270,8 @@ typedef struct Scan
  */
 typedef Scan SeqScan;
 
+typedef Scan ShuffleScan;
+
 /* ----------------
  *		index scan node
  *

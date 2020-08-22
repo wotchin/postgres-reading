@@ -101,6 +101,7 @@
 #include "executor/nodeRecursiveunion.h"
 #include "executor/nodeResult.h"
 #include "executor/nodeSeqscan.h"
+#include "executor/nodeShufflescan.h"
 #include "executor/nodeSetOp.h"
 #include "executor/nodeSort.h"
 #include "executor/nodeSubplan.h"
@@ -187,6 +188,13 @@ ExecInitNode(Plan *node, EState *estate, int eflags)
 			result = (PlanState *) ExecInitSeqScan((SeqScan *) node,
 												   estate, eflags);
 			break;
+		
+		// Lijie: add begin
+		case T_ShuffleScan:
+			result = (PlanState *) ExecInitShuffleScan((ShuffleScan *) node,
+												   estate, eflags);
+			break;
+		// Lijie: add end
 
 		case T_IndexScan:
 			result = (PlanState *) ExecInitIndexScan((IndexScan *) node,
@@ -397,6 +405,10 @@ ExecProcNode(PlanState *node)
 			 */
 		case T_SeqScanState:
 			result = ExecSeqScan((SeqScanState *) node);
+			break;
+
+		case T_ShuffleScanState:
+			result = ExecShuffleScan((ShuffleScanState *) node);
 			break;
 
 		case T_IndexScanState:
@@ -631,6 +643,10 @@ ExecEndNode(PlanState *node)
 			 */
 		case T_SeqScanState:
 			ExecEndSeqScan((SeqScanState *) node);
+			break;
+
+		case T_ShuffleScanState:
+			ExecEndShuffleScan((ShuffleScanState *) node);
 			break;
 
 		case T_IndexScanState:
