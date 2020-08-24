@@ -25,3 +25,10 @@ instructions.
 The latest version of this software may be obtained at
 https://www.postgresql.org/download/.  For more information look at our
 web site located at https://www.postgresql.org/.
+
+Reading Notes
+=====================================
+
+Take notes in [wiki](https://github.com/wotchin/postgres-reading/wiki).
+Read code by [sourcegraph](https://sourcegraph.com/github.com/wotchin/postgres-reading) on browser.
+The read version is pg92, a classical version.
