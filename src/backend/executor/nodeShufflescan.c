@@ -64,26 +64,7 @@ ShuffleSeqNext(ShuffleScanState *node)
 
 	direction = estate->es_direction;
 	slot = node->ss_ScanTupleSlot;
-
-
-	// Lijie: add begin
-	Assert(scandesc->rs_nblocks > 0);
-	BlockNumber n = scandesc->rs_nblocks;
-	BlockNumber shuffled_page_ids[n];
-	for (BlockNumber i = 0; i < n; i++) 
-		shuffled_page_ids[i] = i;
 	
-	srand(time(0) + rand());
-
-	for (BlockNumber i = n - 1; i > 0; i--) {
-		BlockNumber r = rand() % (i + 1);
-		// swap(a + i, a + r);
-		BlockNumber t = shuffled_page_ids[i];
-		shuffled_page_ids[i] = shuffled_page_ids[r];
-		shuffled_page_ids[r] = t;
-	}
-	// Lijie: add end
-
 
 	/*
 	 * get the next tuple from the table
